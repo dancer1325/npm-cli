@@ -14,6 +14,17 @@ description: javascript package manager
 
 ### Description
 
+* `npm`
+  * unaware of workspaces
+  * == Node JS platform's package manager /
+    * puts modules | node can find them
+    * manages smartly dependency conflicts
+  * extremely configurable
+    * -> support MULTIPLE use cases
+  * about registries
+    * preconfigured -- to use -- [npm's public registry](https://registry.npmjs.org)
+    * you can configure / use ANY compatible registry
+
 npm is the package manager for the Node JavaScript platform.
 It puts modules in place so that node can find them, and manages dependency conflicts intelligently.
 

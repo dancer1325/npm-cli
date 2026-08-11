@@ -1,5 +1,6 @@
 # docs
 
-[![CI - docs](https://github.com/npm/cli/actions/workflows/ci-docs.yml/badge.svg)](https://github.com/npm/cli/actions/workflows/ci-docs.yml)
+* goal
+  * npm docs + scripts / build it 
 
-Scripts to build the npm docs.
+* [documentation](lib/content/nav.yml)

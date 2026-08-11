@@ -6,7 +6,14 @@ description: About npm configuration
 
 ### Description
 
-This article details npm configuration in general.
+* goal
+  * GENERAL npm configuration
+
+* [`npm config`](../commands/npm-config.md)
+  * == `config` command
+
+* configuration values passed | npm -- MUST be sorted by -- priority
+
 To learn about the `config` command, see [`npm config`](/commands/npm-config).
 
 npm gets its configuration values from the following sources, sorted by priority:

@@ -6,6 +6,12 @@ description: Working with workspaces
 
 ### Description
 
+- := 👁️set of features in the npm cli / manages several packages within 1! root package 👁️
+    - == they are symlinked
+        -  Go to '../configuringNPM/package.json/examples/workspaces' and run `npm install`
+    - allows
+        - NOT need to use manually `npm link`
+
 **Workspaces** is a generic term that refers to the set of features in the npm cli that provides support for managing multiple packages from your local file system from within a singular top-level, root package.
 
 This set of features makes up for a much more streamlined workflow handling linked packages from the local file system.

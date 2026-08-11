@@ -6,38 +6,48 @@ description: How npm handles the "scripts" field
 
 ### Description
 
-The `"scripts"` property of your `package.json` file supports a number of built-in scripts and their preset life cycle events as well as arbitrary scripts.
-These all can be executed by running `npm run <stage>`.
-*Pre* and *post* commands with matching names will be run for those as well (e.g.
-`premyscript`,
-`myscript`, `postmyscript`).
-Scripts from dependencies can be run with `npm explore <pkg> -- npm run <stage>`.
+* `package.json`'s `"scripts"`
+  * ALLOWED values
+    * built-in scripts
+    * built-in scripts' preset life cycle events
+    * arbitrary scripts
+  * ways to run
+    * `npm run-script <stage>` or
+    * `npm run <stage>`
+    * `npm explore <pkg> -- npm run <stage>`
+      * run scripts -- from -- dependencies
 
 ### Pre & Post Scripts
 
-To create "pre" or "post" scripts for any scripts defined in the
-`"scripts"` section of the `package.json`, simply create another script
-*with a matching name* and add "pre" or "post" to the beginning of them.
-
-```json
-{
-  "scripts": {
-    "precompress": "{{ executes BEFORE the `compress` script }}",
-    "compress": "{{ run command to compress files }}",
-    "postcompress": "{{ executes AFTER `compress` script }}"
-  }
-}
-```
-
-In this example `npm run compress` would execute these scripts as described.
+* "pre" or "post" scripts
+  * == "pre" + keyScriptName OR "post" + keyScriptName
+    * if you run `npm run <keyScriptName>` -> will execute `preKeyScriptName` + `<keyScriptName>` + `postKeyScriptName`
 
 ### Life Cycle Scripts
 
-There are some special life cycle scripts that happen only in certain situations.
+* == 👀SPECIAL life cycle scripts / happen | CERTAIN situations👀
+
 These scripts happen in addition to the `pre<event>`, `post<event>`, and
 `<event>` scripts.
 
 * `prepare`, `prepublish`, `prepublishOnly`, `prepack`, `postpack`, `dependencies`
+
+* **prepare**
+  - requirements
+    - `npm@4.0.0`
+  - runs
+    - BEFORE package is packed
+      - == | `npm publish` & `npm pack`
+    - | local `npm install` / WITHOUT arguments
+    - [AFTER `prepublish`, BEFORE `prepublishOnly`]
+  - if a package is installed -- via -- git ->
+    - 's `dependencies` & `devDependencies` -- will be -- installed
+    - | BEFORE package is packaged & installed, prepare script -- will be -- run
+  - goal
+    - -- replace -- `prepublish`
+  - | `npm@7`
+    - run | background
+      - if you want to see the output -> run with `--foreground-scripts`
 
 **prepare** (since `npm@4.0.0`)
 * Runs BEFORE the package is packed, i.e.
@@ -53,19 +63,69 @@ during `npm publish` and `npm pack`
 
 * **In workspaces, prepare scripts run concurrently** across all packages. If you have interdependent packages where one must build before another, consider using `--foreground-scripts` (which can be set in `.npmrc` with `foreground-scripts=true`) to run scripts sequentially, or structure your build differently.
 
+
+
+* **prepublish**
+  * | `npm@1.1.71`,
+    * if you run `npm publish` OR `npm install` -> npm CLI runs `prepublish` script
+      * Reason: 🧠 convenient way to prepare a package for use 🧠
+  * ❌deprecated❌
+    * Reason: 🧠[confusing](https://github.com/npm/npm/issues/10074)🧠
+  * [here](#prepare-and-prepublish)
+  * use case
+    * operations | your package
+      * /
+        * BEFORE using it
+        * NOT dependent on the target system's OS or architecture
+        * done 1! time
+      * _Example:_
+        * CoffeeScript source code -- is compiled into -- JavaScript
+          * -> You can -- depend on -- `coffee-script` as a `devDependency` == NOT need to install it
+        * from JavaScript source code -- create -- minified versions
+          * NOT need to include minifiers | your package == reducing the size
+        * fetching remote resources / -- used by -- your package
+          * NOT demand to install `curl` or `wget`
+
 **prepublish** (DEPRECATED)
 * Does not run during `npm publish`, but does run during `npm ci` and `npm install`.
 See below for more info.
 
+
+
+* **prepublishOnly**
+  * transitional strategy BETWEEN `prepare` & `prepublish`
+  * if you run `npm publish` -> npm CLI runs `prepublishOnly` script | BEFORE the package is prepared & packed
+  * use cases
+    * run the tests 1! / ensure they're in good shape
+
+
 **prepublishOnly**
 * Runs BEFORE the package is prepared and packed, ONLY on `npm publish`.
+
+
+* **prepack**
+  - | BEFORE packing a tarball
+    - == | `npm pack` / `npm publish`/ install a git dependency
+      - ⚠️`npm run pack` != `npm pack`⚠️
+        - `npm run pack` == arbitrary user defined script name
+        - `npm pack` == CLI defined command
 
 **prepack**
 * Runs BEFORE a tarball is packed (on "`npm pack`", "`npm publish`", and when installing a git dependency).
 * NOTE: "`npm run pack`" is NOT the same as "`npm pack`". "`npm run pack`" is an arbitrary user defined script name, whereas, "`npm pack`" is a CLI defined command.
 
+
+* **postpack**
+  - | [AFTER generating the tarball, BEFORE moving tarball -- to -- its final destination]
+
 **postpack**
 * Runs AFTER the tarball has been generated but before it is moved to its final destination (if at all, publish does not save the tarball locally)
+
+
+
+* **dependencies**
+  - | AFTER operations / modify "node_modules/"
+  - ❌ NOT run | global mode❌
 
 **dependencies**
 * Runs AFTER any operations that modify the `node_modules` directory IF changes occurred.
@@ -355,6 +415,27 @@ They just have to be some kind of executable file.
 
 ### Best Practices
 
+
+- Don't exit with a non-zero error code unless you _really_ mean it.
+  - If the failure is minor or only will prevent some optional features, then it's better to just print a warning and exit successfully.
+- Try not to use scripts to do what npm can do for you.
+  - Read through [`package.json`](/cli/v10/configuring-npm/package-json) to see all the things that you can specify and enable by simply describing your package appropriately.
+  - In general, this will lead to a more robust and consistent state.
+- Inspect the env to determine where to put things. For instance, if the `npm_config_binroot` environment variable is set to `/home/user/bin`, then don't try to install executables into `/usr/local/bin`. The user probably set it up that way for a reason.
+- Don't prefix your script commands with "sudo". If root permissions are required for some reason, then it'll fail with that error, and the user will sudo the npm command in question.
+- `install`
+  - ❌NOT use it❌
+    - -> barely use `preinstall`
+    - EXCEPT TO
+      - compilation / must be done | target architecture
+  - use better
+    - | compilation, `.gyp` file
+    - | anything else, `prepare`
+
+- Scripts are run from the root of the package folder, regardless of what the current working directory is when `npm` is invoked.
+  - If you want your script to use different behavior based on what subdirectory you're in, you can use the `INIT_CWD` environment variable, which holds the full path you were in when you ran `npm run`.
+
+
 * Don't exit with a non-zero error code unless you *really* mean it.
   If the failure is minor or only will prevent some optional features, then it's better to just print a warning and exit successfully.
 * Try not to use scripts to do what npm can do for you.
@@ -369,10 +450,3 @@ Use a `.gyp` file for compilation, and `prepare` for anything else.
 You should almost never have to explicitly set a preinstall or install script.
 If you are doing this, please consider if there is another option.
 The only valid use of `install` or `preinstall` scripts is for compilation which must be done on the target architecture.
-
-### See Also
-
-* [npm run](/commands/npm-run)
-* [package.json](/configuring-npm/package-json)
-* [npm developers](/using-npm/developers)
-* [npm install](/commands/npm-install)

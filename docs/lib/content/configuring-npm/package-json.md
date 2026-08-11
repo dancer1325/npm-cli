@@ -537,10 +537,14 @@ If the `package.json` for your package is not in the root directory (for example
 
 ### scripts
 
-The "scripts" property is a dictionary containing script commands that are run at various times in the lifecycle of your package.
-The key is the lifecycle event, and the value is the command to run at that point.
+* "scripts" property
+  * == dictionary /
+    * 's key
+      * == lifecycle event
+    * 's value
+      * == command / run | key lifecycle event
 
-See [`scripts`](/using-npm/scripts) to find out more about writing package scripts.
+* [how to write package scripts](../using-npm/scripts)
 
 ### gypfile
 
@@ -1228,6 +1232,15 @@ If you would like to ensure that a given package is only ever published to a spe
 
 ### publishConfig
 
+* == set of config values /
+  * used | publish-time
+  * [ALLOWED values](../using-npm/config.mdx)
+* use cases
+  * restrict
+    * tag,
+    * registry or access
+
+TODO: 
 This is a set of config values that will be used at publish-time.
 It's especially handy if you want to set the tag, registry or access, so that you can ensure that a given package is not tagged with "latest", published to the global public registry or that a scoped module is private by default.
 
@@ -1235,6 +1248,20 @@ See [`config`](/using-npm/config) to see the list of config options that can be 
 
 ### workspaces
 
+* `"workspaces": ["ArrayOfFilePatternsToBeLookedUpAsWorkspaces"]`
+  * locations
+    * | local file system
+    * /
+      * 👀MUST be -- symlinked to the -- top level `node_modules/` 👀
+      * ALLOWED values
+        * directPathOfTheFolders
+        * glob / -- resolve to -- SAME folders
+* OPTIONAL
+* _Examples:_ [here](examples/workspaces)
+* see [`workspaces`](/content/cli/v10/using-npm/workspaces.md)
+
+
+TODO: 
 The optional `workspaces` field is an array of file patterns that describes locations within the local file system that the install client should look up to find each [workspace](/using-npm/workspaces) that needs to be symlinked to the top level `node_modules` folder.
 
 It can describe either the direct paths of the folders to be used as workspaces or it can define globs that will resolve to these same folders.

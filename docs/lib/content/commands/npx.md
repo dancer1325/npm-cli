@@ -10,6 +10,15 @@ description: Run a command from a local or remote npm package
 
 ### Description
 
+* allows you
+    * 💡| npm package (locally or fetched remotely), run an arbitrary command 💡/
+        * 's context == `npm run`
+* `--package`
+    * 👀MULTIPLE times -- can -- be used👀
+    * if a specified package NOT exist | local project dependencies -> 👀install | npm cache's folder👀 /
+        * added | executing process' `PATH`
+        * prints a prompt
+
 This command allows you to run an arbitrary command from an npm package (either one installed locally, or fetched remotely), in a similar context as running it via `npm run`.
 
 Run this command to execute a package's binary. Any options and arguments after the package name are passed directly to the executed command, not to npx itself. For example, `npx create-react-app my-app --template typescript` will pass `my-app` and `--template typescript` to the `create-react-app` command. To see what options a specific package accepts, consult that package's documentation (e.g., at npmjs.com or in its repository).
