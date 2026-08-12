@@ -8,8 +8,9 @@ description: How npm handles the "scripts" field
 
 * `package.json`'s `"scripts"`
   * ALLOWED values
-    * built-in scripts
+    * [built-in scripts](#life-cycle-scripts)
     * built-in scripts' preset life cycle events
+      * == "pre-" + built-in scripts & "post-" + built-in scripts  
     * arbitrary scripts
   * ways to run
     * `npm run-script <stage>` or
@@ -17,7 +18,7 @@ description: How npm handles the "scripts" field
     * `npm explore <pkg> -- npm run <stage>`
       * run scripts -- from -- dependencies
 
-### Pre & Post Scripts
+### "pre-" & "post-" scripts
 
 * "pre" or "post" scripts
   * == "pre" + keyScriptName OR "post" + keyScriptName
@@ -27,27 +28,24 @@ description: How npm handles the "scripts" field
 
 * == 👀SPECIAL life cycle scripts / happen | CERTAIN situations👀
 
-These scripts happen in addition to the `pre<event>`, `post<event>`, and
-`<event>` scripts.
-
 * `prepare`, `prepublish`, `prepublishOnly`, `prepack`, `postpack`, `dependencies`
 
 * **prepare**
-  - requirements
-    - `npm@4.0.0`
-  - runs
-    - BEFORE package is packed
-      - == | `npm publish` & `npm pack`
-    - | local `npm install` / WITHOUT arguments
-    - [AFTER `prepublish`, BEFORE `prepublishOnly`]
-  - if a package is installed -- via -- git ->
-    - 's `dependencies` & `devDependencies` -- will be -- installed
-    - | BEFORE package is packaged & installed, prepare script -- will be -- run
-  - goal
-    - -- replace -- `prepublish`
-  - | `npm@7`
-    - run | background
-      - if you want to see the output -> run with `--foreground-scripts`
+  * requirements
+    * ⚠️`npm@4.0.0`⚠️
+  * runs
+    * BEFORE package is packed
+      * == | `npm publish` & `npm pack`
+    * | local `npm install` / WITHOUT arguments
+    * [AFTER `prepublish`, BEFORE `prepublishOnly`]
+  * if a package is installed -- via -- git ->
+    * 's `dependencies` & `devDependencies` -- will be -- installed
+    * | BEFORE package is packaged & installed, prepare script -- will be -- run
+  * goal
+    * -- replace -- `prepublish`
+  * | `npm@7`
+    * run | background
+      * if you want to see the output -> run with `--foreground-scripts`
 
 **prepare** (since `npm@4.0.0`)
 * Runs BEFORE the package is packed, i.e.
@@ -67,8 +65,9 @@ during `npm publish` and `npm pack`
 
 * **prepublish**
   * | `npm@1.1.71`,
-    * if you run `npm publish` OR `npm install` -> npm CLI runs `prepublish` script
+    * if you run `npm ci` OR `npm install` -> npm CLI runs `prepublish` script
       * Reason: 🧠 convenient way to prepare a package for use 🧠
+    * ❌if you run `npm publish` -> npm CLI does NOT run `prepublish` script❌
   * ❌deprecated❌
     * Reason: 🧠[confusing](https://github.com/npm/npm/issues/10074)🧠
   * [here](#prepare-and-prepublish)
@@ -86,29 +85,20 @@ during `npm publish` and `npm pack`
         * fetching remote resources / -- used by -- your package
           * NOT demand to install `curl` or `wget`
 
-**prepublish** (DEPRECATED)
-* Does not run during `npm publish`, but does run during `npm ci` and `npm install`.
-See below for more info.
-
-
-
 * **prepublishOnly**
   * transitional strategy BETWEEN `prepare` & `prepublish`
-  * if you run `npm publish` -> npm CLI runs `prepublishOnly` script | BEFORE the package is prepared & packed
+    * == avoid confusion | EXISTING npm versions
+  * ONLY if you run `npm publish` -> npm CLI runs `prepublishOnly` script | BEFORE the package is prepared & packed
   * use cases
     * run the tests 1! / ensure they're in good shape
 
 
-**prepublishOnly**
-* Runs BEFORE the package is prepared and packed, ONLY on `npm publish`.
-
-
 * **prepack**
-  - | BEFORE packing a tarball
-    - == | `npm pack` / `npm publish`/ install a git dependency
-      - ⚠️`npm run pack` != `npm pack`⚠️
-        - `npm run pack` == arbitrary user defined script name
-        - `npm pack` == CLI defined command
+  * | BEFORE packing a tarball
+    * == | `npm pack` / `npm publish`/ install a git dependency
+      * ⚠️`npm run pack` != `npm pack`⚠️
+        * `npm run pack` == arbitrary user defined script name
+        * `npm pack` == CLI defined command
 
 **prepack**
 * Runs BEFORE a tarball is packed (on "`npm pack`", "`npm publish`", and when installing a git dependency).
@@ -124,26 +114,14 @@ See below for more info.
 
 
 * **dependencies**
-  - | AFTER operations / modify "node_modules/"
-  - ❌ NOT run | global mode❌
-
-**dependencies**
-* Runs AFTER any operations that modify the `node_modules` directory IF changes occurred.
-* Does NOT run in global mode
+  * use case
+    * | AFTER operations / modify "node_modules/"
+      * == AFTER updating "package.json" & "package-lock.json"
+  * ❌ NOT run | global mode❌
 
 #### Prepare and Prepublish
 
-**Deprecation Note: prepublish**
-
-Since `npm@1.1.71`, the npm CLI has run the `prepublish` script for both `npm publish` and `npm install`, because it's a convenient way to prepare a package for use (some common use cases are described in the section below).
-It has also turned out to be, in practice, [very confusing](https://github.com/npm/npm/issues/10074).
-As of `npm@4.0.0`, a new event has been introduced, `prepare`, that preserves this existing behavior.
-A _new_ event, `prepublishOnly` has been added as a transitional strategy to allow users to avoid the confusing behavior of existing npm versions and only run on `npm publish` (for instance, running the tests one last time to ensure they're in good shape).
-
-See <https://github.com/npm/npm/issues/10074> for a much lengthier justification, with further reading, for this change.
-
 **Use Cases**
-
 Use a `prepare` script to perform build tasks that are platform-independent and need to run before your package is used.
 This includes tasks such as:
 
@@ -157,11 +135,6 @@ Additionally, this means that:
 * You can depend on build tools as `devDependencies`, and thus your users don't need to have them installed.
 * You don't need to include minifiers in your package, reducing the size for your users.
 * You don't need to rely on your users having `curl` or `wget` or other system tools on the target machines.
-
-#### Dependencies
-
-The `dependencies` script is run any time an `npm` command causes changes to the `node_modules` directory.
-It is run AFTER the changes have been applied and the `package.json` and `package-lock.json` files have been updated.
 
 ### Life Cycle Operation Order
 
